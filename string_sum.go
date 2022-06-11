@@ -2,6 +2,7 @@ package string_sum
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 )
@@ -29,30 +30,34 @@ var (
 func StringSum(input string) (output string, err error) {
 
 	if input == "" {
-		err = errorEmptyInput
-		return "", err
+		return "", fmt.Errorf("err: %v", errorEmptyInput)
 	}
 
-	// check if valid
-	for _, v := range input {
-		if !strings.ContainsRune("0123456789+-", v) {
-			err = errorInvalidInput
-			return "", err
-		}
-	}
+	// // check if valid
+	// for _, v := range input {
+	// 	if !strings.ContainsRune("0123456789+-", v) {
+	// 		err = errorInvalidInput
+	// 		return "", err
+	// 	}
+	// }
 
 	// getting rid of whitespace
 	input = strings.ReplaceAll(input, " ", "")
 
 	delimit := strings.LastIndexAny(input, "+-")
+	if delimit == -1 {
+		return "", fmt.Errorf("err: %v", errorNotTwoOperands)
+	}
 	op1Str := input[0:delimit]
 	op2Str := input[delimit:]
 
-	op1, err1 := strconv.ParseInt(op1Str, 10, 64)
-	op2, err2 := strconv.ParseInt(op2Str, 10, 64)
-	if err1 != nil || err2 != nil {
-		err = errorNotTwoOperands
-		return "", err
+	op1, err := strconv.ParseInt(op1Str, 10, 64)
+	if err != nil {
+		return "", fmt.Errorf("err: %v", errorInvalidInput)
+	}
+	op2, err := strconv.ParseInt(op2Str, 10, 64)
+	if err != nil {
+		return "", fmt.Errorf("err: %v", errorInvalidInput)
 	}
 
 	output = strconv.FormatInt(op1+op2, 10)
