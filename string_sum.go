@@ -13,8 +13,6 @@ var (
 	errorEmptyInput = errors.New("input is empty")
 	// Use when the expression has number of operands not equal to two
 	errorNotTwoOperands = errors.New("expecting two operands, but received more or less")
-	// Use when the expression is not valid
-	errorInvalidInput = errors.New("input expression is not valid(expecting characters, that are not numbers, +, - or whitespace)")
 )
 
 // Implement a function that computes the sum of two int numbers written as a string
@@ -30,37 +28,48 @@ var (
 func StringSum(input string) (output string, err error) {
 
 	if input == "" {
-		return "", fmt.Errorf("err: %v", errorEmptyInput)
+		return "", fmt.Errorf("%w", errorEmptyInput)
 	}
 
-	// // check if valid
-	// for _, v := range input {
-	// 	if !strings.ContainsRune("0123456789+-", v) {
-	// 		err = errorInvalidInput
-	// 		return "", err
-	// 	}
-	// }
-
-	// getting rid of whitespace
 	input = strings.ReplaceAll(input, " ", "")
 
-	delimit := strings.LastIndexAny(input, "+-")
-	if delimit == -1 {
-		return "", fmt.Errorf("err: %v", errorNotTwoOperands)
-	}
-	op1Str := input[0:delimit]
-	op2Str := input[delimit:]
+	var pos, neg []string
 
-	op1, err := strconv.ParseInt(op1Str, 10, 64)
-	if err != nil {
-		return "", fmt.Errorf("err: %v", errorInvalidInput)
-	}
-	op2, err := strconv.ParseInt(op2Str, 10, 64)
-	if err != nil {
-		return "", fmt.Errorf("err: %v", errorInvalidInput)
+	inter := strings.Split(input, "+")
+	for _, s := range inter {
+		if strings.Contains(s, "-") {
+			if strings.Index(s, "-") == 0 {
+				s = s[1:]
+			} else {
+				pos = append(pos, s[:strings.Index(s, "-")])
+				s = s[strings.Index(s, "-")+1:]
+			}
+			neg = append(neg, strings.Split(s, "-")...)
+		} else {
+			pos = append(pos, s)
+		}
 	}
 
-	output = strconv.FormatInt(op1+op2, 10)
+	if len(pos)+len(neg) != 2 {
+		return "", fmt.Errorf("%w", errorNotTwoOperands)
+	}
+
+	var o int64
+	for _, v := range pos {
+		x, err := strconv.ParseInt(v, 10, 64)
+		if err != nil {
+			return "", fmt.Errorf("err: %w", err)
+		}
+		o += x
+	}
+	for _, v := range neg {
+		x, err := strconv.ParseInt(v, 10, 64)
+		if err != nil {
+			return "", fmt.Errorf("err: %w", err)
+		}
+		o -= x
+	}
+	output = strconv.FormatInt(o, 10)
 
 	return output, nil
 }
